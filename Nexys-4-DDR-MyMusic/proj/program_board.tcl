@@ -1,6 +1,6 @@
 # Project specific settings. These must be updated for each project.
 set proj_name "MyMusic"
-set main_file "GPIO_Demo"
+set main_file "MyMusic_main"
 
 # Program the board with the compiled bitstream
 set curDir [pwd]
