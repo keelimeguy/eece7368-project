@@ -1,4 +1,4 @@
-#include "stdio.h"
+#include <stdio.h>
 #include "defs.h"
 
 behavior Monitor(i_receiver synth_stream) {
@@ -6,12 +6,13 @@ behavior Monitor(i_receiver synth_stream) {
     int i;
 
     void main(void) {
-        while(1) {
+        while (1) {
             synth_stream.receive(chord, MAX_CHORD_SIZE);
             printf("RX: ");
             for (i = 0; i < MAX_CHORD_SIZE; i++)
                 printf("%d,", chord[i]);
-            printf("\n");
+            printf("\t");
+            PRINT_TIME_S();
         }
     }
 };

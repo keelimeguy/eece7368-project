@@ -2,18 +2,21 @@
 
 behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) {
 
-    char c;
+    char c; int i;
     bool in_chord = false, note_valid = false;
     int chord_idx = 0;
     chord_t chord = INVALID_CHORD;
+    chord_t last_chord = INVALID_CHORD;
 
     void trigger_error(void) {
         notify error;
 
         in_chord = false;
         note_valid = false;
-        while (chord_idx > 0)
-            chord[--chord_idx] = INVALID_NOTE;
+        for (i = 0; i < MAX_CHORD_SIZE; i++) {
+            last_chord[i] = INVALID_NOTE;
+            chord[i] = INVALID_NOTE;
+        }
         chord_idx = 0;
     }
 
@@ -38,6 +41,13 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
             // printf("<- %c\n", c);
 
             switch (c) {
+                case '-': // repeat chord
+                    if (in_chord || note_valid)
+                        trigger_error();
+
+                    chord_stream.send(last_chord, MAX_CHORD_SIZE);
+                    break;
+
                 case '{': // begin chord
                     if (chord_idx != 0 || in_chord)
                         trigger_error();
@@ -52,8 +62,10 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                     chord_stream.send(chord, MAX_CHORD_SIZE);
 
                     in_chord = false;
-                    while (chord_idx > 0)
-                        chord[--chord_idx] = INVALID_NOTE;
+                    for (i = 0; i < MAX_CHORD_SIZE; i++) {
+                        last_chord[i] = chord[i];
+                        chord[i] = INVALID_NOTE;
+                    }
                     chord_idx = 0;
                     break;
 
@@ -87,14 +99,16 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
 
                     if (!in_chord) {
                         // printf("-> ");
-                        // for (int i = 0; i < MAX_CHORD_SIZE; i++)
+                        // for (i = 0; i < MAX_CHORD_SIZE; i++)
                         //     printf("%d,", chord[i]);
                         // printf("\n");
 
                         chord_stream.send(chord, MAX_CHORD_SIZE);
 
-                        while (chord_idx > 0)
-                            chord[--chord_idx] = INVALID_NOTE;
+                        for (i = 0; i < MAX_CHORD_SIZE; i++) {
+                            last_chord[i] = chord[i];
+                            chord[i] = INVALID_NOTE;
+                        }
                         chord_idx = 0;
                     }
 

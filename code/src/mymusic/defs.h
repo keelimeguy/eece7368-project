@@ -1,9 +1,10 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#include "stdint.h"
-#include "stdio.h"
+#include <stdint.h>
+#include <stdio.h>
 
+#define BPM 160
 #define MAX_CHORD_SIZE 3
 
 typedef int8_t note_t;
@@ -29,11 +30,11 @@ typedef note_t chord_t[MAX_CHORD_SIZE];
 
 #include <sim/time.sh>
 
-#define SIM_WAIT_TIME_EXACT (1.0 SEC)
-#define SIM_WAIT_TIME_APPROX (int)(SIM_WAIT_TIME_EXACT)
-#define SIM_WAIT_TIME_CORRECTION_BASE (1.0 / (SIM_WAIT_TIME_EXACT - SIM_WAIT_TIME_APPROX))
-#define SIM_WAIT_TIME_CORRECTION(iteration) (1 - (int)(iteration - (int)(iteration / SIM_WAIT_TIME_CORRECTION_BASE) * SIM_WAIT_TIME_CORRECTION_BASE))
-#define SIM_WAIT_TIME(iteration) (SIM_WAIT_TIME_APPROX + SIM_WAIT_TIME_CORRECTION(iteration))
+#define SIM_WAIT_TIME_EXACT(BPM) (60.0 SEC / BPM)
+#define SIM_WAIT_TIME_APPROX(BPM) (unsigned long long)(SIM_WAIT_TIME_EXACT(BPM))
+#define SIM_WAIT_TIME_CORRECTION_BASE(BPM) ((SIM_WAIT_TIME_EXACT(BPM) - SIM_WAIT_TIME_APPROX(BPM)) ? 1.0 / (SIM_WAIT_TIME_EXACT(BPM) - SIM_WAIT_TIME_APPROX(BPM)) : 0.0)
+#define SIM_WAIT_TIME_CORRECTION(BPM, iteration) (SIM_WAIT_TIME_CORRECTION_BASE(BPM) ? 1 - (int)(iteration - (int)(iteration / SIM_WAIT_TIME_CORRECTION_BASE(BPM)) * SIM_WAIT_TIME_CORRECTION_BASE(BPM)) : 0)
+#define SIM_WAIT_TIME(BPM, iteration) (SIM_WAIT_TIME_APPROX(BPM) + SIM_WAIT_TIME_CORRECTION(BPM, iteration))
 
 #define PRINT_TIME_PS() printf("Time = %llu ps\n", now())
 #define PRINT_TIME_NS() printf("Time = %f ns\n", now() / (1.0 NANO_SEC))
