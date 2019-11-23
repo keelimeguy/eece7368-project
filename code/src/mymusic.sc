@@ -6,11 +6,11 @@ import "c_queue";
 
 behavior Start(event error) {
     c_queue char_stream(1ul);
-    c_queue chord_stream(3ul);
+    c_queue synth_stream(3ul);
 
     Stimulus stimulus(char_stream);
-    DUT dut(char_stream, chord_stream, error);
-    Monitor monitor(chord_stream);
+    DUT dut(char_stream, synth_stream, error);
+    Monitor monitor(synth_stream);
 
     void main(void) {
         par {
