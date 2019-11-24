@@ -2,7 +2,7 @@
 #include "defs.h"
 
 behavior Stimulus(i_sender char_stream) {
-    char sequence[] = "G3{}A3{}B3{}C4{}D4{}E4{}F#4{}{B3D4G4}--{}";
+    char sequence[] = "G3.A3.B3.C4.D4.E4.F#4.(B3D4G4)--.";
     int i;
 
     void main(void) {

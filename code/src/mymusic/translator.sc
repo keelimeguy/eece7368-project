@@ -41,6 +41,13 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
             // printf("<- %c\n", c);
 
             switch (c) {
+                case '.': // pause
+                    if (in_chord || note_valid)
+                        trigger_error();
+
+                    chord_stream.send(chord, MAX_CHORD_SIZE);
+                    break;
+
                 case '-': // repeat chord
                     if (in_chord || note_valid)
                         trigger_error();
@@ -48,14 +55,14 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                     chord_stream.send(last_chord, MAX_CHORD_SIZE);
                     break;
 
-                case '{': // begin chord
+                case '(': // begin chord
                     if (chord_idx != 0 || in_chord)
                         trigger_error();
 
                     in_chord = true;
                     break;
 
-                case '}': // end chord
+                case ')': // end chord
                     if (!in_chord)
                         trigger_error();
 

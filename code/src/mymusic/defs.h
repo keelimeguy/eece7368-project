@@ -26,6 +26,9 @@ typedef note_t chord_t[MAX_CHORD_SIZE];
 
 #define FREQ(note) (440 * (1 << ((note - 69) / 12)))
 
+#define START_CHORD_CODE 0x80
+#define END_CHORD_CODE   0x81
+
 /**** Timing ****/
 
 #include <sim/time.sh>

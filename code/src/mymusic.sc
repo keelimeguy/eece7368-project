@@ -1,12 +1,13 @@
 import "c_queue";
 
+#include "mymusic/chord_writer.sc"
 #include "mymusic/stimulus.sc"
 #include "mymusic/dut.sc"
 #include "mymusic/monitor.sc"
 
 behavior Start(event error) {
     c_queue char_stream(1ul);
-    c_queue synth_stream(3ul);
+    DebugChordWriter synth_stream;
 
     Stimulus stimulus(char_stream);
     DUT dut(char_stream, synth_stream, error);
