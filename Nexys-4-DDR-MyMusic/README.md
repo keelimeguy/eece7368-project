@@ -28,6 +28,6 @@ Built with Vivado 2018.2
 13. Once complete, the board will run the program until turned off or re-programmed
 
 ## References
-- [Nexys-4-DDR-__skeleton__](https://github.com/keelimeguy/FPGA-Vivado-skeletons/tree/master/Nexys-4-DDR-__skeleton__)
+- [Nexys-4-DDR-\_\_skeleton\_\_](https://github.com/keelimeguy/FPGA-Vivado-skeletons/tree/master/Nexys-4-DDR-__skeleton__)
 - [Nexys 4 GPIO Demo](https://reference.digilentinc.com/learn/programmable-logic/tutorials/nexys-4-ddr-gpio-demo/start)
 - [Nexys 4 Serial Port](https://forum.digilentinc.com/topic/766-vhdl-uart-rx-for-nexys4-ddr/)
