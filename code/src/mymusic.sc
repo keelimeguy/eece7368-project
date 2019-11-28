@@ -8,9 +8,10 @@ import "c_queue";
 behavior Start(event error) {
     c_queue char_stream(1ul);
     DebugChordWriter synth_stream;
+    bool stop = false;
 
-    Stimulus stimulus(char_stream);
-    DUT dut(char_stream, synth_stream, error);
+    Stimulus stimulus(char_stream, stop);
+    DUT dut(char_stream, synth_stream, error, stop);
     Monitor monitor(synth_stream);
 
     void main(void) {

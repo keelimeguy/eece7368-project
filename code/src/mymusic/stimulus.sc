@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "defs.h"
 
-behavior Stimulus(i_sender char_stream) {
-    char sequence[] = "G3.A3.B3.C4.D4.E4.F#4.(B3D4G4)--.";
+behavior Stimulus(i_sender char_stream, out bool stop) {
+    char sequence[] = STIMULUS_SEQUENCE;
     int i;
 
     void main(void) {
@@ -14,5 +14,7 @@ behavior Stimulus(i_sender char_stream) {
         for (i = 0; sequence[i] != 0; i++) {
             char_stream.send(&sequence[i], 1);
         }
+
+        stop = true;
     }
 };

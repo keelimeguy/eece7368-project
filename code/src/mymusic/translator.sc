@@ -1,12 +1,18 @@
 #include "defs.h"
 
-behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) {
+behavior Translator(i_receiver char_stream,
+                    i_sender chord_stream,
+                    event error,
+                    in bool stop,
+                    out bool stop_stream,
+                    out int final_chord_num) {
 
     char c; int i;
     bool in_chord = false, note_valid = false;
     int chord_idx = 0;
     chord_t chord = INVALID_CHORD;
     chord_t repeat_chord = REPEAT_CHORD;
+    int num_chords = 0;
 
     void trigger_error(void) {
         notify error;
@@ -45,6 +51,7 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                         trigger_error();
 
                     chord_stream.send(chord, MAX_CHORD_SIZE);
+                    num_chords++;
                     break;
 
                 case '-': // repeat chord
@@ -52,6 +59,7 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                         trigger_error();
 
                     chord_stream.send(repeat_chord, MAX_CHORD_SIZE);
+                    num_chords++;
                     break;
 
                 case '(': // begin chord
@@ -66,6 +74,7 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                         trigger_error();
 
                     chord_stream.send(chord, MAX_CHORD_SIZE);
+                    num_chords++;
 
                     in_chord = false;
                     for (i = 0; i < MAX_CHORD_SIZE; i++) {
@@ -109,6 +118,7 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                         // printf("\n");
 
                         chord_stream.send(chord, MAX_CHORD_SIZE);
+                        num_chords++;
 
                         for (i = 0; i < MAX_CHORD_SIZE; i++) {
                             chord[i] = INVALID_NOTE;
@@ -131,6 +141,10 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                     chord_idx++;
 
             }
+            if (stop) break;
         }
+        printf("stop_stream\n");
+        stop_stream = true;
+        final_chord_num = num_chords;
     }
 };
