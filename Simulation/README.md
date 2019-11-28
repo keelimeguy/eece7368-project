@@ -1,5 +1,5 @@
-# code
-Contains the SpecC code for the project.
+# Simulation
+Contains the SpecC simulation code for the project.
 
 ## Usage
 `./run.sh`
