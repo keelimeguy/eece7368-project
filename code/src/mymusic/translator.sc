@@ -6,7 +6,7 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
     bool in_chord = false, note_valid = false;
     int chord_idx = 0;
     chord_t chord = INVALID_CHORD;
-    chord_t last_chord = INVALID_CHORD;
+    chord_t repeat_chord = REPEAT_CHORD;
 
     void trigger_error(void) {
         notify error;
@@ -14,7 +14,6 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
         in_chord = false;
         note_valid = false;
         for (i = 0; i < MAX_CHORD_SIZE; i++) {
-            last_chord[i] = INVALID_NOTE;
             chord[i] = INVALID_NOTE;
         }
         chord_idx = 0;
@@ -52,7 +51,7 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                     if (in_chord || note_valid)
                         trigger_error();
 
-                    chord_stream.send(last_chord, MAX_CHORD_SIZE);
+                    chord_stream.send(repeat_chord, MAX_CHORD_SIZE);
                     break;
 
                 case '(': // begin chord
@@ -70,7 +69,6 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
 
                     in_chord = false;
                     for (i = 0; i < MAX_CHORD_SIZE; i++) {
-                        last_chord[i] = chord[i];
                         chord[i] = INVALID_NOTE;
                     }
                     chord_idx = 0;
@@ -113,7 +111,6 @@ behavior Translator(i_receiver char_stream, i_sender chord_stream, event error) 
                         chord_stream.send(chord, MAX_CHORD_SIZE);
 
                         for (i = 0; i < MAX_CHORD_SIZE; i++) {
-                            last_chord[i] = chord[i];
                             chord[i] = INVALID_NOTE;
                         }
                         chord_idx = 0;

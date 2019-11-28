@@ -3,11 +3,12 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 #define BPM 160
 #define MAX_CHORD_SIZE 3
 
-typedef int8_t note_t;
+typedef uint8_t note_t;
 typedef note_t chord_t[MAX_CHORD_SIZE];
 
 #define NOTE_C 12
@@ -21,13 +22,17 @@ typedef note_t chord_t[MAX_CHORD_SIZE];
 #define MIN_NOTE 0
 #define MAX_NOTE 127
 
+#define START_CHORD_CODE     0x80
+#define END_CHORD_CODE       0x81
+#define REPEAT_CHORD_CODE    0x99
+#define VOLUME_CODE(volume)  (0xA0 | (volume & 0xf))
+
 #define INVALID_NOTE -1
 #define INVALID_CHORD {INVALID_NOTE,INVALID_NOTE,INVALID_NOTE}
+#define REPEAT_CHORD {REPEAT_CHORD_CODE,REPEAT_CHORD_CODE,REPEAT_CHORD_CODE}
 
-#define FREQ(note) (440 * (1 << ((note - 69) / 12)))
+#define FREQ(note) (440 * pow(2, ((note - 69) / 12.0)))
 
-#define START_CHORD_CODE 0x80
-#define END_CHORD_CODE   0x81
 
 /**** Timing ****/
 
