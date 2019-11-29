@@ -129,7 +129,7 @@ behavior Translator(i_receiver char_stream,
                     break;
 
                 default:
-                    if (chord_idx >= MAX_CHORD_SIZE)
+                    if (note_valid || chord_idx >= MAX_CHORD_SIZE)
                         trigger_error();
 
                     chord[chord_idx] = convert_char_to_note(c);
