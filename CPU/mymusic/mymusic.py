@@ -49,7 +49,7 @@ class MyMusic:
             sys.exit(0)
 
         elif self.translator.done:
-            while not self.streaming_element.empty:
+            while self.running and not self.streaming_element.empty:
                 time.sleep(.01)
             self.stop()
             sys.exit(0)

@@ -19,15 +19,17 @@
 -- RESET_READ - Data has been read, which turns off READ_DATA
 ----------------------------------------------------------------------------
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.ALL;
+use ieee.numeric_std.ALL;
+
 entity UART_RX_CTRL is
-    port ( UART_RX: in   STD_LOGIC;
-        CLK:        in   STD_LOGIC;
-        DATA:       out  STD_LOGIC_VECTOR (7 downto 0);
-        READ_DATA:  out  STD_LOGIC := '0';
-        RESET_READ: in   STD_LOGIC
+    port (
+        UART_RX    : in  std_logic;
+        CLK        : in  std_logic;
+        DATA       : out std_logic_vector(7 downto 0);
+        READ_DATA  : out std_logic := '0';
+        RESET_READ : in  std_logic
     );
 end UART_RX_CTRL;
 
@@ -41,19 +43,19 @@ architecture behavioral of UART_RX_CTRL is
     -- skip the start bit and get halfway into the first
     -- data bit. After that, we skip whole bit durations
     -- to sample midway through the other data bits
-    signal   count   : integer := 0;
-    constant sample_0: integer := 3 * FREQ/(BAUD*2)-1;
-    constant sample_1: integer := 5 * FREQ/(BAUD*2)-1;
-    constant sample_2: integer := 7 * FREQ/(BAUD*2)-1;
-    constant sample_3: integer := 9 * FREQ/(BAUD*2)-1;
-    constant sample_4: integer := 11 * FREQ/(BAUD*2)-1;
-    constant sample_5: integer := 13 * FREQ/(BAUD*2)-1;
-    constant sample_6: integer := 15 * FREQ/(BAUD*2)-1;
-    constant sample_7: integer := 17 * FREQ/(BAUD*2)-1;
-    constant stop_bit: integer := 19 * FREQ/(BAUD*2)-1;
+    signal   count    : integer := 0;
+    constant sample_0 : integer := 3 * FREQ/(BAUD*2)-1;
+    constant sample_1 : integer := 5 * FREQ/(BAUD*2)-1;
+    constant sample_2 : integer := 7 * FREQ/(BAUD*2)-1;
+    constant sample_3 : integer := 9 * FREQ/(BAUD*2)-1;
+    constant sample_4 : integer := 11 * FREQ/(BAUD*2)-1;
+    constant sample_5 : integer := 13 * FREQ/(BAUD*2)-1;
+    constant sample_6 : integer := 15 * FREQ/(BAUD*2)-1;
+    constant sample_7 : integer := 17 * FREQ/(BAUD*2)-1;
+    constant stop_bit : integer := 19 * FREQ/(BAUD*2)-1;
 
     -- The bits from the serial input accumulate here
-    signal byte: std_logic_vector(7 downto 0) := (others => '0');
+    signal byte : std_logic_vector(7 downto 0) := (others => '0');
 
 begin
     rx_state_process : process (CLK)
@@ -66,8 +68,8 @@ begin
                 READ_DATA <= '0';
             end if;
 
-	    -- Sample the serial line several times to find
-	    -- the eight data bits and the stop bit
+            -- Sample the serial line several times to find
+            -- the eight data bits and the stop bit
             case count is
                 when sample_0 => byte <= UART_RX & byte(7 downto 1);
                 when sample_1 => byte <= UART_RX & byte(7 downto 1);
