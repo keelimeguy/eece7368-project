@@ -6,7 +6,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
     parser.add_argument('--start', '-s', default=0, type=float, help='Starting time to graph in millisec')
-    parser.add_argument('--end', '-e', default=None, type=float, help='Starting time to graph in millisec')
+    parser.add_argument('--end', '-e', default=None, type=float, help='Ending time to graph in millisec')
     args = parser.parse_args()
 
     x = []
