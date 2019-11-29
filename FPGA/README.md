@@ -1,5 +1,9 @@
-# Nexys4 DDR MyMusic Project
-Built with Vivado 2018.2
+# FPGA
+Contains the FPGA component code for the project.
+
+### Requirements
+Tested with Vivado 2018.2  
+On [Nexys4 DDR](https://reference.digilentinc.com/reference/programmable-logic/nexys-4-ddr/start)
 
 ## Command Line Usage
 

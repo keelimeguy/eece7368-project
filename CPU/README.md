@@ -1,7 +1,7 @@
 # CPU
 Contains the CPU component code for the project.
 
-### Requirements
+## Requirements
 Tested with Python 3.5.4  
 On [WSL](https://docs.microsoft.com/en-us/windows/wsl/faq): Debian GNU/Linux 9 (stretch) v4.4.0-18362-Microsoft
 
