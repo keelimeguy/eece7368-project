@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class StreamingElement(threading.Thread):
     def __init__(self, serial_writer, max_chord_size, bpm=None, volume=10):
         logger.debug('new {} with bpm={}'.format(type(self).__name__, bpm))
-        super(type(self), self).__init__()
+        super(StreamingElement, self).__init__()
 
         serial_writer.set_volume(volume)
         self.first = True
@@ -27,7 +27,7 @@ class StreamingElement(threading.Thread):
 
     def start(self):
         self.running = True
-        super(type(self), self).start()
+        super(StreamingElement, self).start()
 
     def run(self):
         try:

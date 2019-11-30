@@ -1,7 +1,7 @@
 import logging
 import time
 import sys
-from .translator import Translator
+from .translator import Translator, KeyboardTranslator
 from .input_streamer import InputStreamer, SongStreamer
 from .streaming_element import StreamingElement
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class MyMusic:
 
-    def __init__(self, serial_writer, max_chord_size, volume=10, song=None, bpm=None, repeat=1):
+    def __init__(self, serial_writer, max_chord_size, volume=10, transpose=0, song=None, bpm=None, repeat=1, keyboard=False):
         logger.debug('new {} with max_chord_size={}'.format(type(self).__name__, max_chord_size))
 
         if song is None:
@@ -18,10 +18,15 @@ class MyMusic:
             self.input_streamer = InputStreamer()
         else:
             self.exit_streamer = InputStreamer(blocking=False)
-            self.input_streamer = SongStreamer(song, repeat)
+            self.input_streamer = SongStreamer(song, repeat=repeat)
 
         self.streaming_element = StreamingElement(serial_writer, max_chord_size, bpm=bpm, volume=volume)
-        self.translator = Translator(max_chord_size, self.input_streamer.get_next_char, self.streaming_element.write_chord)
+
+        if keyboard and song is None:
+            self.translator = KeyboardTranslator(max_chord_size, self.input_streamer.get_next_char, self.streaming_element.write_chord, transpose=transpose)
+        else:
+            self.translator = Translator(max_chord_size, self.input_streamer.get_next_char, self.streaming_element.write_chord, transpose=transpose)
+
         self.running = False
 
     def start(self):

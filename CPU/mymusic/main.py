@@ -15,13 +15,16 @@ if __name__ == '__main__':
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('--input', '-p', default=None, help='Provide an input via command line.')
     group.add_argument('--input_file', '-f', default=None, help='Provide an input via file.')
+    group.add_argument('--keyboard', '-K', action='store_true', help='Stream input like a (single-note) piano keyboard.')
 
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('--loop', '-l', action='store_true', help='Loop the given input song.')
     group.add_argument('--repeat', '-r', default=1, type=int, help='Repeat the given input song a number of times.')
 
     parser.add_argument('--bpm', '-b', default=0, type=int, help='Speed of the given input song.')
-    parser.add_argument('--volume', '-v', default=10, type=int, help='Volume of program.')
+    parser.add_argument('--transpose', '-t', default=0, type=int, help='How much to shift each note.')
+    parser.add_argument('--volume', '-v', default=1, type=int, help='How much to scale the volume of program.')
+
 
     args = parser.parse_args()
 
@@ -37,7 +40,7 @@ if __name__ == '__main__':
         song = ''
         with open(args.input_file) as f:
             for line in f:
-                song += line.strip()
+                song += line.replace(' ','').strip()
     logger.debug('Input is: {}'.format(song))
 
     mymusic = None
@@ -50,7 +53,7 @@ if __name__ == '__main__':
 
     while True:
         with SerialWriter(args.port) as serial_writer:
-            mymusic = MyMusic(serial_writer, args.max_chord_size, volume=args.volume, song=song, bpm=args.bpm, repeat=repeat)
+            mymusic = MyMusic(serial_writer, args.max_chord_size, volume=args.volume, transpose=args.transpose, song=song, bpm=args.bpm, repeat=repeat, keyboard=args.keyboard)
 
             mymusic.start()
             logging.error('Execution has ended unexpectedly.')
