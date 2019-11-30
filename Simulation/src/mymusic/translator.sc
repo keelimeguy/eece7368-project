@@ -141,10 +141,11 @@ behavior Translator(i_receiver char_stream,
                     chord_idx++;
 
             }
+
             if (stop) break;
         }
-        printf("stop_stream\n");
         stop_stream = true;
         final_chord_num = num_chords;
+        printf("stop_stream: %d\n", num_chords);
     }
 };

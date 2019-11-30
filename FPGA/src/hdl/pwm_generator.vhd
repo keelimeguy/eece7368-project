@@ -34,6 +34,7 @@ architecture Behavioral of pwm_generator is
     signal target_count : integer_arr_type;
     signal square_count : integer_arr_type;
     signal duty_count : integer;
+    signal valid : std_logic_vector(chord_size-1 downto 0);
     signal off_flag : std_logic_vector(chord_size-1 downto 0);
     signal pwm_arr : std_logic_vector(chord_size-1 downto 0);
     signal count : integer := 0;
@@ -52,7 +53,12 @@ begin
             begin
                 last_chord(I) <= chord(I);
                 -- On new freq need to reset waveform also
-                if (chord(I) /= last_chord(I) or chord(I) = "00000000000000") then
+                if (chord(I) = "00000000000000") then
+                    valid(I) <= '0';
+                    square_count(I) <= 0;
+                    off_flag(I) <= '0';
+                elsif (chord(I) /= last_chord(I)) then
+                    valid(I) <= '1';
                     square_count(I) <= 0;
                     off_flag(I) <= '0';
                 elsif (clk'event and clk = '1') then
@@ -67,14 +73,14 @@ begin
                 end if;
             end process;
 
-            pwm_arr(I) <= '1' when off_flag(I) = '0' and to_integer(unsigned(volume))>duty_count else '0';
+            pwm_arr(I) <= '1' when off_flag(I) = '1' and to_integer(unsigned(volume))>duty_count else '0';
 
         end generate;
 
         process(clk)
         begin
             if (clk'event and clk = '1') then
-                if (count < chord_size-1) then
+                if (count < count_ones(valid)-1) then
                     count <= count+1;
                 else
                     count <= 0;
@@ -89,7 +95,7 @@ begin
             end if;
         end process;
 
-        pwm <= '1' when count_ones(pwm_arr) > count and playing = '1' else '0';
+        pwm <= '1' when (count_ones(pwm_arr) > count) and (playing = '1') else '0';
 
     end generate;
 

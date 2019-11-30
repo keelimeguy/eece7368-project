@@ -15,6 +15,7 @@ behavior Stimulus(i_sender char_stream, out bool stop) {
             char_stream.send(&sequence[i], 1);
         }
 
+        waitfor(2 + SIM_WAIT_TIME(BPM, 0));
         stop = true;
     }
 };
