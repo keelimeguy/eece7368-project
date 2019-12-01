@@ -1,6 +1,9 @@
 #include "defs.h"
 #include "AudioPort.sc"
 
+#include <math.h>
+#define PI 3.14159265
+
 behavior ParseChord(i_receiver synth_stream, ChordWriter out_stream,
                     out bool valid[MAX_CHORD_SIZE],
                     out uint16_t freq_values[MAX_CHORD_SIZE],
@@ -67,13 +70,13 @@ behavior ParseChord(i_receiver synth_stream, ChordWriter out_stream,
     }
 };
 
-behavior GenWaveform(in bool valid[MAX_CHORD_SIZE],
-                     in uint16_t freq_values[MAX_CHORD_SIZE],
-                     in bool playing,
-                     in uint8_t volume,
-                     AudioWriter audio,
-                     event error,
-                     in bool stop ) {
+behavior GenSquareWaveform(in bool valid[MAX_CHORD_SIZE],
+                           in uint16_t freq_values[MAX_CHORD_SIZE],
+                           in bool playing,
+                           in uint8_t volume,
+                           AudioWriter audio,
+                           event error,
+                           in bool stop ) {
 
     uint8_t duty_count = 0, num_valid;
     uint32_t squarewave_count[MAX_CHORD_SIZE];
@@ -143,6 +146,96 @@ behavior GenWaveform(in bool valid[MAX_CHORD_SIZE],
     }
 };
 
+behavior GenSineWaveform(in bool valid[MAX_CHORD_SIZE],
+                         in uint16_t freq_values[MAX_CHORD_SIZE],
+                         in bool playing,
+                         in uint8_t volume,
+                         AudioWriter audio,
+                         event error,
+                         in bool stop ) {
+
+    uint8_t num_valid;
+    int i, count_on = 0, count = 0, sample_count = 0;
+
+    int wavecount[MAX_CHORD_SIZE];
+    int sinememaddr[MAX_CHORD_SIZE];
+    bool pwm[MAX_CHORD_SIZE], combined_pwm;
+
+    uint16_t last_freq_values[MAX_CHORD_SIZE];
+
+    uint8_t sine_lookup(unsigned int addr) {
+        if (addr > SINE_SAMPLES) {
+            notify error;
+            return 0;
+        }
+
+        return (uint8_t)((sin(addr * PI / (SINE_SAMPLES / 2.0)) + 1.0) * (15.0 / 2.0));
+    }
+
+    void main(void) {
+        for (i = 0; i < MAX_CHORD_SIZE; i++) {
+            sample_count = 0;
+            wavecount[i] = 0;
+            sinememaddr[i] = 0;
+            pwm[i] = false;
+        }
+
+        while (1) {
+            num_valid = 0;
+            count_on = 0;
+
+            for (i = 0; i < MAX_CHORD_SIZE; i++) {
+                if (last_freq_values[i] != freq_values[i]) {
+                    for (i = 0; i < MAX_CHORD_SIZE; i++) {
+                        sample_count = 0;
+                        wavecount[i] = 0;
+                        sinememaddr[i] = 0;
+                        pwm[i] = false;
+                    }
+                }
+            }
+
+            // Generate waveforms for individual chord components
+            for (i = 0; i < MAX_CHORD_SIZE; i++) {
+                if (valid[i]) {
+                    num_valid++;
+
+                    if (wavecount[i] < SINE_WAVE_TICKS(freq_values[i])) {
+                        wavecount[i]++;
+
+                    } else {
+                        wavecount[i] = 0;
+                        sinememaddr[i] = (sinememaddr[i] + SINE_ADDR_INCR) % SINE_SAMPLES;
+                    }
+
+                    pwm[i] = sample_count < sine_lookup(sinememaddr[i]) * volume;
+                    if (pwm[i]) count_on++;
+                }
+            }
+
+            if (count < num_valid - 1) count++;
+            else count = 0;
+
+            if (sample_count < SAMPLING_RESOLUTION) sample_count++;
+            else {
+                sample_count = 0;
+            }
+
+            // Generate combined waveform
+
+            combined_pwm = ((count_on > count) && playing);
+            audio.write_audio(combined_pwm);
+
+            for (i = 0; i < MAX_CHORD_SIZE; i++) {
+                last_freq_values[i] = freq_values[i];
+            }
+
+            waitfor(FPGA_TICK);
+            if (stop) break;
+        }
+    }
+};
+
 behavior Synthesizer(i_receiver synth_stream, ChordWriter out_stream, event error,
                      in bool stop) {
     uint16_t freq_values[MAX_CHORD_SIZE];
@@ -153,7 +246,12 @@ behavior Synthesizer(i_receiver synth_stream, ChordWriter out_stream, event erro
     DebugAudioPort audio;
 
     ParseChord parse_chord(synth_stream, out_stream, valid, freq_values, playing, volume);
-    GenWaveform gen_waveform(valid, freq_values, playing, volume, audio, error, stop);
+
+#if WAVE_TYPE == SQUARE_WAVE_TYPE
+    GenSquareWaveform gen_waveform(valid, freq_values, playing, volume, audio, error, stop);
+#elif WAVE_TYPE == SINE_WAVE_TYPE
+    GenSineWaveform gen_waveform(valid, freq_values, playing, volume, audio, error, stop);
+#endif
 
     void main(void) {
         while (1) {

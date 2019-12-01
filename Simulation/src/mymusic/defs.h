@@ -6,14 +6,21 @@
 #include <math.h>
 
 #ifndef STIMULUS_SEQUENCE
-#define STIMULUS_SEQUENCE "G4(G4G5)(G4G5G6)."
+#define STIMULUS_SEQUENCE "G4G5G6."
+// #define STIMULUS_SEQUENCE "G4(G4G5)(G4G5G6)."
 #endif
 #ifndef AUDIO_FILE
 #define AUDIO_FILE "audio.out"
 #endif
 
+#define SQUARE_WAVE_TYPE 0
+#define SINE_WAVE_TYPE   1
+
 #define BPM (6000)
-#define MAX_CHORD_SIZE 3
+#define MAX_CHORD_SIZE 1
+#define WAVE_TYPE SINE_WAVE_TYPE
+
+/************************/
 
 typedef uint8_t note_t;
 typedef note_t chord_t[MAX_CHORD_SIZE];
@@ -35,14 +42,21 @@ typedef note_t chord_t[MAX_CHORD_SIZE];
 #define VOLUME_CODE(volume)  (0xA0 | (volume & 0xf))
 
 #define INVALID_NOTE -1
-#define INVALID_CHORD {INVALID_NOTE,INVALID_NOTE,INVALID_NOTE}
-#define REPEAT_CHORD {REPEAT_CHORD_CODE,REPEAT_CHORD_CODE,REPEAT_CHORD_CODE}
+// #define INVALID_CHORD {INVALID_NOTE,INVALID_NOTE,INVALID_NOTE}
+// #define REPEAT_CHORD {REPEAT_CHORD_CODE,REPEAT_CHORD_CODE,REPEAT_CHORD_CODE}
+#define INVALID_CHORD {INVALID_NOTE}
+#define REPEAT_CHORD {REPEAT_CHORD_CODE}
 
 #define FREQ(note)       (440 * pow(2, ((note - 69) / 12.0)))
 
 #define FPGA_CLK         (100000000.) // 100 MHz
 #define FPGA_TICK        (1 SEC / FPGA_CLK)
 #define WAVE_TICKS(freq) (FPGA_CLK / (2.0 * freq))
+
+#define SINE_SAMPLES (4096)
+#define SAMPLING_RESOLUTION (1<<8)
+#define SINE_ADDR_INCR 9
+#define SINE_WAVE_TICKS(freq) (SINE_ADDR_INCR * FPGA_CLK / (SINE_SAMPLES * freq))
 
 /**** Timing ****/
 
