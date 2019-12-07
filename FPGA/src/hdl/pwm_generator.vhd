@@ -73,10 +73,10 @@ architecture Behavioral of pwm_generator is
 
     signal duty_count : integer := 0;
 
-    signal off_flag : std_logic_vector(chord_size-1 downto 0);
-    signal pwm_arr : std_logic_vector(chord_size-1 downto 0);
-    signal valid : std_logic_vector(chord_size-1 downto 0);
-    signal last_chord : chord_type(chord_size-1 downto 0);
+    signal off_flag : std_logic_vector(chord_size-1 downto 0) := (others => '0');
+    signal pwm_arr : std_logic_vector(chord_size-1 downto 0) := (others => '0');
+    signal valid : std_logic_vector(chord_size-1 downto 0) := (others => '0');
+    signal last_chord : chord_type(chord_size-1 downto 0) := (others => (others => '0'));
     signal count : integer := 0;
 
 begin
@@ -96,29 +96,27 @@ begin
                     nine_incr_ticks => target_count(I)
                 );
 
-            process(clk)
+            process(clk, chord(I))
             begin
-                last_chord(I) <= chord(I);
                 -- On new freq need to reset waveform also
                 if (chord(I) = "00000000000000") then
                     valid(I) <= '0';
-                    wave_count(I) <= 0;
                     sinemem_addr(I) <= X"000";
                 elsif (chord(I) /= last_chord(I)) then
                     valid(I) <= '1';
-                    wave_count(I) <= 0;
                     sinemem_addr(I) <= X"000";
                 elsif (clk'event and clk = '1') then
                     if (wave_count(I) < target_count(I)-1) then
                         wave_count(I) <= wave_count(I)+1;
                     else
-                        sinemem_addr(I) <= std_logic_vector(to_unsigned(to_integer(unsigned(sinemem_addr(I))) + 9, 12));
+                        sinemem_addr(I) <= std_logic_vector(to_unsigned(to_integer(unsigned(sinemem_addr(I))) + 9, sinemem_addr(I)'length));
                         wave_count(I) <= 0;
                     end if;
+                    valid(I) <= '1';
                 end if;
             end process;
 
-            pwm_arr(I) <= '1' when duty_count < to_integer(unsigned(sine(I))) * to_integer(unsigned(volume)) and valid(I) = '1' else '0';
+            pwm_arr(I) <= '1' when (duty_count < to_integer(unsigned(sine(I))) * to_integer(unsigned(volume))) else '0';
 
         end generate;
 
@@ -141,6 +139,7 @@ begin
         end process;
 
         pwm <= '1' when (count_ones(pwm_arr) > count) and (playing = '1') else '0';
+        last_chord <= chord;
 
     end generate;
 
@@ -153,27 +152,22 @@ begin
                     half_period_ticks => target_count(I)
                 );
 
-            process(clk)
+            process(clk, chord(I))
             begin
-                last_chord(I) <= chord(I);
                 -- On new freq need to reset waveform also
                 if (chord(I) = "00000000000000") then
                     valid(I) <= '0';
-                    wave_count(I) <= 0;
-                    off_flag(I) <= '0';
                 elsif (chord(I) /= last_chord(I)) then
                     valid(I) <= '1';
-                    wave_count(I) <= 0;
-                    off_flag(I) <= '0';
                 elsif (clk'event and clk = '1') then
                     if (wave_count(I) < target_count(I)-1) then
                         wave_count(I) <= wave_count(I)+1;
                         off_flag(I) <= off_flag(I);
-
                     else
                         wave_count(I) <= 0;
                         off_flag(I) <= not off_flag(I);
                     end if;
+                    valid(I) <= '1';
                 end if;
             end process;
 
@@ -200,6 +194,7 @@ begin
         end process;
 
         pwm <= '1' when (count_ones(pwm_arr) > count) and (playing = '1') else '0';
+        last_chord <= chord;
 
     end generate;
 

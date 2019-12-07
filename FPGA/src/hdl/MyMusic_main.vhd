@@ -12,7 +12,7 @@ use work.pwm_generator_pkg.all;
 
 entity MyMusic_main is
     generic (
-        MAX_CHORD_SIZE : integer := 1;
+        MAX_CHORD_SIZE : integer := 3;
         WAVE_TYPE      : integer := 1 -- 1=sine, 0=square
     );
     port (
@@ -142,7 +142,7 @@ begin
     inst_hex: hex_7seg
         port map(
             CLK => CLK,
-            DATA => note_value(0)&"00000000"&"00000000"&volume&"000"&playing,
+            DATA => note_value(0)&note_value(1)&note_value(2)&volume&"000"&playing,
             DIGIT_ENABLE => "11111111",
             SSEG_CA => SSEG_CA,
             SSEG_AN => SSEG_AN
