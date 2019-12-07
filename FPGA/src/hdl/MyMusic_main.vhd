@@ -12,7 +12,8 @@ use work.pwm_generator_pkg.all;
 
 entity MyMusic_main is
     generic (
-        MAX_CHORD_SIZE : integer := 3
+        MAX_CHORD_SIZE : integer := 1;
+        WAVE_TYPE      : integer := 1 -- 1=sine, 0=square
     );
     port (
         CLK      : in  std_logic;
@@ -217,7 +218,7 @@ begin
 
     PWM_Gen: pwm_generator
         generic map(
-            wave_type => 0, -- Generate square waves
+            wave_type => WAVE_TYPE,
             chord_size => MAX_CHORD_SIZE
         )
         port map (
