@@ -54,7 +54,6 @@ typedef note_t chord_t[MAX_CHORD_SIZE];
 #define WAVE_TICKS(freq) (FPGA_CLK / (2.0 * freq))
 
 #define SINE_SAMPLES (4096)
-#define SAMPLING_RESOLUTION (1<<8)
 #define SINE_ADDR_INCR 9
 #define SINE_WAVE_TICKS(freq) (SINE_ADDR_INCR * FPGA_CLK / (SINE_SAMPLES * freq))
 

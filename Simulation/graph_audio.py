@@ -7,6 +7,7 @@ if __name__ == '__main__':
     parser.add_argument('filename')
     parser.add_argument('--start', '-s', default=0, type=float, help='Starting time to graph in millisec')
     parser.add_argument('--end', '-e', default=None, type=float, help='Ending time to graph in millisec')
+    parser.add_argument('--output', '-o', action='store_true', help='Save the resulting graph to an image.')
     args = parser.parse_args()
 
     x = []
@@ -35,5 +36,6 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
     ax.plot(x, y)
 
-    fig.savefig("audio.png")
+    if args.output:
+        fig.savefig("audio.png")
     plt.show()

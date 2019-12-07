@@ -169,7 +169,7 @@ behavior GenSineWaveform(in bool valid[MAX_CHORD_SIZE],
             return 0;
         }
 
-        return (uint8_t)((sin(addr * PI / (SINE_SAMPLES / 2.0)) + 1.0) * (15.0 / 2.0));
+        return (uint8_t)((sin(addr * PI / (SINE_SAMPLES / 2.0)) + 1.0) * (15.0 / 2.0) + 0.5);
     }
 
     void main(void) {
@@ -216,10 +216,8 @@ behavior GenSineWaveform(in bool valid[MAX_CHORD_SIZE],
             if (count < num_valid - 1) count++;
             else count = 0;
 
-            if (sample_count < SAMPLING_RESOLUTION) sample_count++;
-            else {
-                sample_count = 0;
-            }
+            if (sample_count < 15*15-1) sample_count++;
+            else sample_count = 0;
 
             // Generate combined waveform
 
