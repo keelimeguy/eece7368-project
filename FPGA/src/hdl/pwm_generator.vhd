@@ -129,8 +129,8 @@ begin
                     count <= 0;
                 end if;
 
-                -- Volume&Sine is 8 bits -> 255
-                if (duty_count < 254) then
+                -- Volume&Sine is max 15*15 -> 225
+                if (duty_count < 224) then
                     duty_count <= duty_count+1;
                 else
                     duty_count <= 0;
@@ -157,12 +157,12 @@ begin
                 -- On new freq need to reset waveform also
                 if (chord(I) = "00000000000000") then
                     valid(I) <= '0';
+                    off_flag(I) <= '0';
                 elsif (chord(I) /= last_chord(I)) then
                     valid(I) <= '1';
                 elsif (clk'event and clk = '1') then
                     if (wave_count(I) < target_count(I)-1) then
                         wave_count(I) <= wave_count(I)+1;
-                        off_flag(I) <= off_flag(I);
                     else
                         wave_count(I) <= 0;
                         off_flag(I) <= not off_flag(I);

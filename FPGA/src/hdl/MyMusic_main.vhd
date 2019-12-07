@@ -13,7 +13,7 @@ use work.pwm_generator_pkg.all;
 entity MyMusic_main is
     generic (
         MAX_CHORD_SIZE : integer := 3;
-        WAVE_TYPE      : integer := 1 -- 1=sine, 0=square
+        WAVE_TYPE      : integer := 0 -- 1=sine, 0=square
     );
     port (
         CLK      : in  std_logic;
