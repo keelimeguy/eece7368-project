@@ -22,7 +22,8 @@ class Translator(threading.Thread):
 
         self.max_chord_size = max_chord_size
         self.get_next_char = get_next_char
-        self.chord_callback = chord_callback
+
+        self._chord_callback = chord_callback
         self.transpose = transpose
 
         self.idx = 0
@@ -34,6 +35,10 @@ class Translator(threading.Thread):
         self.running = False
         self.done = False
         self.stop_program = False
+
+    def chord_callback(self, chord):
+        logger.debug('sending: {}'.format(chord))
+        self._chord_callback(chord)
 
     def send(self, chord):
         self.last_chord = chord
@@ -170,5 +175,6 @@ class KeyboardTranslator(Translator):
         else:
             note = self.convert_char_to_note(c) + 12 * self.octave
             if 0 <= note <= 127:
-                self.chord = self.max_chord_size*[note]
+                self.chord = self.max_chord_size*[-1]
+                self.chord[0] = note
                 self.chord_callback(self.chord)

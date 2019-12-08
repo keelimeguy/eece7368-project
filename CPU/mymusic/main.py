@@ -25,10 +25,14 @@ if __name__ == '__main__':
     parser.add_argument('--transpose', '-t', default=0, type=int, help='How much to shift each note.')
     parser.add_argument('--volume', '-v', default=1, type=int, help='How much to scale the volume of program.')
 
+    parser.add_argument('--verbose', '-V', action='store_true', help='Use verbose debug logging.')
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=LOG_LEVEL, format='%(name)s:%(lineno)d [%(levelname)s] %(message)s')
+    if args.verbose:
+        LOG_LEVEL = logging.DEBUG
+
+    logging.basicConfig(level=LOG_LEVEL, format='%(threadName)s.%(name)s:%(lineno)d [%(levelname)s] %(message)s')
     logger = logging.getLogger(__name__)
 
     repeat = args.repeat
@@ -41,7 +45,7 @@ if __name__ == '__main__':
         with open(args.input_file) as f:
             for line in f:
                 song += line.replace(' ','').strip()
-    logger.debug('Input is: {}'.format(song))
+    logger.info('Input is: {}'.format(song))
 
     mymusic = None
 

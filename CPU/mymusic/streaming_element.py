@@ -70,5 +70,4 @@ class StreamingElement(threading.Thread):
 
     def write_chord(self, chord):
         self.empty = False
-        logger.debug('adding: {}'.format(chord))
         self.stream.put(chord)
