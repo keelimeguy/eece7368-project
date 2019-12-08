@@ -12,11 +12,11 @@ use work.pwm_generator_pkg.all;
 
 entity MyMusic_main is
     generic (
-        MAX_CHORD_SIZE : integer := 3;
-        WAVE_TYPE      : integer := 0 -- 1=sine, 0=square
+        MAX_CHORD_SIZE : integer := 3
     );
     port (
         CLK      : in  std_logic;
+        SW       : in  std_logic_vector(0 downto 0);
         SSEG_CA  : out std_logic_vector(7 downto 0);
         SSEG_AN  : out std_logic_vector(7 downto 0);
         UART_RXD : in  std_logic;
@@ -30,15 +30,15 @@ architecture Behavioral of MyMusic_main is
 
     component pwm_generator is
         generic (
-            wave_type  : integer := 0;
             chord_size : integer := 1
         );
         port (
-            playing : in  std_logic;
-            clk     : in  std_logic;
-            chord   : in  chord_type(chord_size-1 downto 0);
-            volume  : in  std_logic_vector(3 downto 0);
-            pwm     : out std_logic
+            wave_type : in std_logic;
+            playing   : in  std_logic;
+            clk       : in  std_logic;
+            chord     : in  chord_type(chord_size-1 downto 0);
+            volume    : in  std_logic_vector(3 downto 0);
+            pwm       : out std_logic
         );
     end component;
 
@@ -218,10 +218,10 @@ begin
 
     PWM_Gen: pwm_generator
         generic map(
-            wave_type => WAVE_TYPE,
             chord_size => MAX_CHORD_SIZE
         )
         port map (
+            wave_type => SW(0),
             playing => playing,
             clk => CLK,
             chord => freq_value,

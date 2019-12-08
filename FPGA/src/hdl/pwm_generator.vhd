@@ -8,19 +8,24 @@ use work.pwm_generator_pkg.all;
 
 entity pwm_generator is
     generic (
-        wave_type  : integer := 0;
         chord_size : integer := 1
     );
     port (
-        playing : in  std_logic;
-        clk     : in  std_logic;
-        chord   : in  chord_type(chord_size-1 downto 0);
-        volume  : in  std_logic_vector(3 downto 0);
-        pwm     : out std_logic
+        wave_type : in  std_logic; -- 1=sine, 0=square
+        playing   : in  std_logic;
+        clk       : in  std_logic;
+        chord     : in  chord_type(chord_size-1 downto 0);
+        volume    : in  std_logic_vector(3 downto 0);
+        pwm       : out std_logic
     );
 end pwm_generator;
 
 architecture Behavioral of pwm_generator is
+
+    signal valid : std_logic_vector(chord_size-1 downto 0) := (others => '0');
+    signal last_chord : chord_type(chord_size-1 downto 0) := (others => (others => '0'));
+    signal count : integer := 0;
+
     ------------------------------------
     -- Sine Wave calculations:
     ------------------------------------
@@ -51,6 +56,8 @@ architecture Behavioral of pwm_generator is
     signal next_sinemem_addr : addr_arr_type;
     type half_byte_arr_type is array(chord_size-1 downto 0) of std_logic_vector(3 downto 0);
     signal sine : half_byte_arr_type;
+    signal sine_count : integer := 0;
+    signal sine_pwm_arr : std_logic_vector(chord_size-1 downto 0) := (others => '0');
 
     ------------------------------------
     -- Square Wave calculations:
@@ -66,136 +73,115 @@ architecture Behavioral of pwm_generator is
             half_period_ticks : out integer
         );
     end component;
+    signal square_count : integer := 0;
+    signal off_flag : std_logic_vector(chord_size-1 downto 0) := (others => '0');
+    signal square_pwm_arr : std_logic_vector(chord_size-1 downto 0) := (others => '0');
 
     type integer_arr_type is array(chord_size-1 downto 0) of integer;
-    signal target_count : integer_arr_type;
-    signal wave_count : integer_arr_type;
-
-    signal duty_count : integer := 0;
-
-    signal off_flag : std_logic_vector(chord_size-1 downto 0) := (others => '0');
-    signal pwm_arr : std_logic_vector(chord_size-1 downto 0) := (others => '0');
-    signal valid : std_logic_vector(chord_size-1 downto 0) := (others => '0');
-    signal last_chord : chord_type(chord_size-1 downto 0) := (others => (others => '0'));
-    signal count : integer := 0;
+    signal sine_target_count : integer_arr_type;
+    signal square_target_count : integer_arr_type;
+    signal sine_wave_count : integer_arr_type;
+    signal square_wave_count : integer_arr_type;
 
 begin
-    sineWaveGEN : if (wave_type = 1) generate
-        sineWaveGEN_LOOP : for I in 0 to chord_size-1 generate
+    sineWaveGEN_LOOP : for I in 0 to chord_size-1 generate
 
-            sinemem : sine_mem
-                port map (
-                    addr => sinemem_addr(I),
-                    data => sine(I),
-                    clk => clk
-                );
+        sinemem : sine_mem
+            port map (
+                addr => sinemem_addr(I),
+                data => sine(I),
+                clk => clk
+            );
 
-            sinememaddr_lut : lut_sine_mem_addr
-                port map (
-                    freq => chord(I),
-                    nine_incr_ticks => target_count(I)
-                );
+        sinememaddr_lut : lut_sine_mem_addr
+            port map (
+                freq => chord(I),
+                nine_incr_ticks => sine_target_count(I)
+            );
 
-            process(clk, chord(I))
-            begin
-                -- On new freq need to reset waveform also
-                if (chord(I) = "00000000000000") then
-                    valid(I) <= '0';
-                    sinemem_addr(I) <= X"000";
-                elsif (chord(I) /= last_chord(I)) then
-                    valid(I) <= '1';
-                    sinemem_addr(I) <= X"000";
-                elsif (clk'event and clk = '1') then
-                    if (wave_count(I) < target_count(I)-1) then
-                        wave_count(I) <= wave_count(I)+1;
-                    else
-                        sinemem_addr(I) <= std_logic_vector(to_unsigned(to_integer(unsigned(sinemem_addr(I))) + 9, sinemem_addr(I)'length));
-                        wave_count(I) <= 0;
-                    end if;
-                    valid(I) <= '1';
-                end if;
-            end process;
-
-            pwm_arr(I) <= '1' when (duty_count < to_integer(unsigned(sine(I))) * to_integer(unsigned(volume))) else '0';
-
-        end generate;
-
-        process(clk)
+        process(clk, chord(I))
         begin
-            if (clk'event and clk = '1') then
-                if (count < count_ones(valid)-1) then
-                    count <= count+1;
+            -- On new freq need to reset waveform also
+            if (chord(I) = "00000000000000") or (chord(I) /= last_chord(I)) then
+                sinemem_addr(I) <= X"000";
+            elsif (clk'event and clk = '1') then
+                if (sine_wave_count(I) < sine_target_count(I)-1) then
+                    sine_wave_count(I) <= sine_wave_count(I)+1;
                 else
-                    count <= 0;
-                end if;
-
-                -- Volume&Sine is max 15*15 -> 225
-                if (duty_count < 224) then
-                    duty_count <= duty_count+1;
-                else
-                    duty_count <= 0;
+                    sinemem_addr(I) <= std_logic_vector(to_unsigned(to_integer(unsigned(sinemem_addr(I))) + 9, sinemem_addr(I)'length));
+                    sine_wave_count(I) <= 0;
                 end if;
             end if;
         end process;
 
-        pwm <= '1' when (count_ones(pwm_arr) > count) and (playing = '1') else '0';
-        last_chord <= chord;
+        sine_pwm_arr(I) <= '1' when (sine_count < to_integer(unsigned(sine(I))) * to_integer(unsigned(volume))) else '0';
 
     end generate;
 
-    squareWaveGEN : if (wave_type = 0) generate
-        squareWaveGEN_LOOP : for I in 0 to chord_size-1 generate
+    squareWaveGEN_LOOP : for I in 0 to chord_size-1 generate
 
-            square_ticks_LUT : lut_square_ticks
-                port map (
-                    freq => chord(I),
-                    half_period_ticks => target_count(I)
-                );
+        square_ticks_LUT : lut_square_ticks
+            port map (
+                freq => chord(I),
+                half_period_ticks => square_target_count(I)
+            );
 
-            process(clk, chord(I))
-            begin
-                -- On new freq need to reset waveform also
-                if (chord(I) = "00000000000000") then
-                    valid(I) <= '0';
-                    off_flag(I) <= '0';
-                elsif (chord(I) /= last_chord(I)) then
-                    valid(I) <= '1';
-                elsif (clk'event and clk = '1') then
-                    if (wave_count(I) < target_count(I)-1) then
-                        wave_count(I) <= wave_count(I)+1;
-                    else
-                        wave_count(I) <= 0;
-                        off_flag(I) <= not off_flag(I);
-                    end if;
-                    valid(I) <= '1';
-                end if;
-            end process;
-
-            pwm_arr(I) <= '1' when off_flag(I) = '1' and to_integer(unsigned(volume))>duty_count else '0';
-
-        end generate;
-
-        process(clk)
+        process(clk, chord(I))
         begin
-            if (clk'event and clk = '1') then
-                if (count < count_ones(valid)-1) then
-                    count <= count+1;
+            -- On new freq need to reset waveform also
+            if (chord(I) = "00000000000000") then
+                off_flag(I) <= '0';
+            elsif (clk'event and clk = '1') then
+                if (square_wave_count(I) < square_target_count(I)-1) then
+                    square_wave_count(I) <= square_wave_count(I)+1;
                 else
-                    count <= 0;
-                end if;
-
-                -- Volume is 4 bits -> 15
-                if (duty_count < 14) then
-                    duty_count <= duty_count+1;
-                else
-                    duty_count <= 0;
+                    square_wave_count(I) <= 0;
+                    off_flag(I) <= not off_flag(I);
                 end if;
             end if;
         end process;
 
-        pwm <= '1' when (count_ones(pwm_arr) > count) and (playing = '1') else '0';
-        last_chord <= chord;
+        square_pwm_arr(I) <= '1' when off_flag(I) = '1' and to_integer(unsigned(volume)) > square_count else '0';
 
     end generate;
+
+    chordGEN_LOOP : for I in 0 to chord_size-1 generate
+        process(chord(I))
+        begin
+            if (chord(I) = "00000000000000") then
+                valid(I) <= '0';
+            elsif (chord(I) /= last_chord(I)) then
+                valid(I) <= '1';
+            end if;
+            last_chord(I) <= chord(I);
+        end process;
+    end generate;
+
+    process(clk)
+    begin
+        if (clk'event and clk = '1') then
+            if (count < count_ones(valid)-1) then
+                count <= count+1;
+            else
+                count <= 0;
+            end if;
+
+            -- Volume is 4 bits -> 15
+            if (square_count < 14) then
+                square_count <= square_count+1;
+            else
+                square_count <= 0;
+            end if;
+
+            -- Volume&Sine is max 15*15 -> 225
+            if (sine_count < 224) then
+                sine_count <= sine_count+1;
+            else
+                sine_count <= 0;
+            end if;
+        end if;
+    end process;
+
+    pwm <= '1' when (playing = '1') and ((count_ones(square_pwm_arr) > count and wave_type = '0') or (count_ones(sine_pwm_arr) > count and wave_type = '1')) else '0';
 
 end Behavioral;
