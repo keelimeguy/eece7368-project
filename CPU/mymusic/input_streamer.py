@@ -45,14 +45,16 @@ logger = logging.getLogger(__name__)
 
 
 class InputStreamer:
-    def __init__(self, blocking=True):
+    def __init__(self, blocking=True, verbose=True):
         logger.debug('new {}'.format(type(self).__name__))
         self.blocking = blocking
         self.started = False
+        self.verbose = verbose
 
     def get_next_char(self):
         if not self.started:
-            logger.info('Begin inputting sequence..')
+            if self.verbose:
+                logger.info('Begin inputting sequence..')
             self.started = True
 
         print(end='', flush=True)

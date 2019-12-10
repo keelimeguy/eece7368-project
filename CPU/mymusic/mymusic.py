@@ -17,7 +17,7 @@ class MyMusic:
             self.exit_streamer = None
             self.input_streamer = InputStreamer()
         else:
-            self.exit_streamer = InputStreamer(blocking=False)
+            self.exit_streamer = InputStreamer(blocking=False, verbose=True)
             self.input_streamer = SongStreamer(song, repeat=repeat)
 
         self.streaming_element = StreamingElement(serial_writer, max_chord_size, bpm=bpm, volume=volume)
